@@ -32,5 +32,4 @@ GIF created with [LiceCap](http://www.cockos.com/licecap/).
 Challenges encountered while building the app:
 
 1. Manipulate ListView and Adapter successfully.
-
 2. Do content switch and pass data correctly.
