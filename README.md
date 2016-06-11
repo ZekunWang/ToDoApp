@@ -25,7 +25,7 @@ The following **additional** features are implemented: N/A
 
 Here's a walkthrough of implemented user stories:
 
-<blockquote class="imgur-embed-pub" lang="en" data-id="hPNoOyo"><a href="//imgur.com/hPNoOyo">View post on imgur.com</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+![Video Walkthrough](http://i.imgur.com/hPNoOyo.gifv)
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
