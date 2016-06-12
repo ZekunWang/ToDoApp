@@ -27,8 +27,6 @@ Here's a walkthrough of implemented user stories:
 
 ![Video Walkthrough](ToDoApp.gif)
 
-![Video Walkthrough](http://i.imgur.com/hPNoOyo.gifv)
-
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 Challenges encountered while building the app:
