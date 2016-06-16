@@ -8,4 +8,12 @@
     <string name="title_activity_edit_item">Edit Item</string>
     <string name="edit_item">Edit Item Below:</string>
     <string name="save">Save</string>
+    <string name="title">Title</string>
+    <string name="priority">Priority</string>
+    <string name="content">Content</string>
+    <string name="due_date">Due Date</string>
+    <string name="create_new_item">NEW</string>
+    <string name="due_time">Due Time</string>
+    <string name="sortByPriority">Sort By Priority</string>
+    <string name="sortByDateAndTime">Sort By Due</string>
 </resources>
