@@ -23,13 +23,14 @@ The following **optional** features are implemented:
 
 The following **additional** features are implemented:
 * [x] Add content input for detailed info or the TODO item
-* [x] Improved deletion with alert
+* [x] Improve deletion with alert
 * [x] Add sorting feature
-
+* [x] Add support for mark of completion
+* [x] Add support for quick enable/disable date and time picker
 
 Here's a walkthrough of implemented user stories:
 
-![Video Walkthrough](ToDoApp_v2.gif)
+![Video Walkthrough](ToDoApp_v3.gif)
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 

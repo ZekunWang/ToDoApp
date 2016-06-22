@@ -11,10 +11,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TimePicker;
+
+import java.util.Calendar;
 
 //import org.apache.commons.io.FileUtils;
 //import java.io.File;
@@ -25,24 +30,31 @@ public class EditItemActivity extends FragmentActivity
         implements DatePickerDialog.OnDateSetListener,TimePickerDialog.OnTimeSetListener {
 
     static final String[] ITEMS = {"Low", "Medium", "High"};
-    //static final String[] DAY_OF_WEEK = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
-    //static final int DIAG_ID = 0;
     EditText etTitle;
+    CheckBox cbCompleted;
+    Button btnDueDate;
+    Switch swDate;
+    Button btnDueTime;
+    Switch swTime;
     EditText etContent;
     Spinner spnPriority;
-    Button btnDueDate;
-    Button btnDueTime;
     Item item;
+    int year, month, day;
+    int hour, minute;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_item);
 
         etTitle = (EditText) findViewById(R.id.etTitle);
+        cbCompleted = (CheckBox) findViewById(R.id.cbCompleted);
+        btnDueDate = (Button) findViewById(R.id.btnDueDate);
+        swDate = (Switch) findViewById(R.id.swDate);
+        btnDueTime = (Button) findViewById(R.id.btnDueTime);
+        swTime = (Switch) findViewById(R.id.swTime);
         etContent = (EditText) findViewById(R.id.etContent);
         spnPriority = (Spinner) findViewById(R.id.spnPriority);
-        btnDueDate = (Button) findViewById(R.id.btnDueDate);
-        btnDueTime = (Button) findViewById(R.id.btnDueTime);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, ITEMS);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -51,74 +63,138 @@ public class EditItemActivity extends FragmentActivity
         int pos = getIntent().getIntExtra("position", 0);
         item = MainActivity.todoItems.get(pos);
         etTitle.setText(item.title);
-        etContent.setText(item.content);
-        spnPriority.setSelection(item.priority);
-        if (item.year == 0) {
-            btnDueDate.setText("OFF");
+        cbCompleted.setChecked(item.completed);
+
+        year = item.year;
+        month = item.month;
+        day = item.day;
+        if (year == 0) {
+            disableDate();
+            swDate.setChecked(false);
         } else {
             setDate();
+            swDate.setChecked(true);
         }
-        if (item.hour == -1) {
-            btnDueTime.setText("OFF");
+
+        hour = item.hour;
+        minute = item.minute;
+        if (hour == -1) {
+            disableTime();
+            swTime.setChecked(false);
         } else {
             setTime();
+            swTime.setChecked(true);
         }
+        etContent.setText(item.content);
+        spnPriority.setSelection(item.priority);
+
+        swDate.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    enableDate();
+                } else {
+                    swTime.setChecked(false);
+                    disableDate();
+                }
+            }
+        });
+
+        swTime.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    swDate.setChecked(true);
+                    enableTime();
+                } else {
+                    disableTime();
+                }
+            }
+        });
     }
 
     private void setDate() {
         StringBuilder sb = new StringBuilder();
-        if (item.month < 10) {
+        if (month < 10) {
             sb.append('0');
         }
-        sb.append(item.month).append('/');
-        if (item.day < 10) {
+        sb.append(month).append('/');
+        if (day < 10) {
             sb.append('0');
         }
-        sb.append(item.day);
-        sb.append('/').append(item.year);
+        sb.append(day);
+        sb.append('/').append(year);
         btnDueDate.setText(sb.toString());
     }
 
     private void setTime() {
         StringBuilder sb = new StringBuilder();
-        if (item.hour < 10) {
+        if (hour < 10) {
             sb.append('0');
         }
-        sb.append("" + item.hour).append(" : ");
-        if (item.minute < 10) {
+        sb.append("" + hour).append(" : ");
+        if (minute < 10) {
             sb.append('0');
         }
-        sb.append("" + item.minute);
+        sb.append("" + minute);
         btnDueTime.setText(sb.toString());
+    }
+
+    private void enableDate() {
+        if (year == 0) {
+            Calendar cal = Calendar.getInstance();
+            year = cal.get(Calendar.YEAR);
+            month = cal.get(Calendar.MONTH) + 1;
+            day = cal.get(Calendar.DAY_OF_MONTH);
+        }
+        setDate();
+    }
+
+    private void disableDate() {
+        btnDueDate.setText("OFF");
+    }
+
+    private void enableTime() {
+        if (hour < 0) {
+            hour = 8;
+            minute = 0;
+        }
+        setTime();
+    }
+
+    private void disableTime() {
+        btnDueTime.setText("OFF");
     }
 
     // attach to an onclick handler to show the date picker
     public void showDatePickerDialog(View v) {
         int pos = getIntent().getIntExtra("position", 0);
-        DatePickerFragment newFragment = DatePickerFragment.newInstance(pos);
+        DatePickerFragment newFragment = DatePickerFragment.newInstance(pos, year, month - 1, day);
         newFragment.show(getSupportFragmentManager(), "datePicker");
     }
 
     public void showTimePickerDialog(View v) {
         int pos = getIntent().getIntExtra("position", 0);
-        TimePickerFragment newFragment = TimePickerFragment.newInstance(pos);
+        TimePickerFragment newFragment = TimePickerFragment.newInstance(pos, hour, minute);
         newFragment.show(getSupportFragmentManager(), "timePicker");
     }
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        item.year = year;
-        item.month = monthOfYear + 1;   // read month (0 - 11)
-        item.day = dayOfMonth;
-        setDate();
+        this.year = year;
+        this.month = monthOfYear + 1;   // read month (0 - 11)
+        this.day = dayOfMonth;
+        swDate.setChecked(true);
+        enableDate();
     }
 
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        item.hour = hourOfDay;
-        item.minute = minute;
-        setTime();
+        this.hour = hourOfDay;
+        this.minute = minute;
+        swTime.setChecked(true);
+        enableTime();
     }
 
     @Override
@@ -164,6 +240,23 @@ public class EditItemActivity extends FragmentActivity
     public void onSaveItem(final int result) {
         int pos = getIntent().getIntExtra("position", 0);
         item.title = etTitle.getText().toString();
+        item.completed = cbCompleted.isChecked();
+        if (!swDate.isChecked()) {
+            item.year = 0;
+            item.month = 0;
+            item.day = 0;
+        } else {
+            item.year = year;
+            item.month = month;
+            item.day = day;
+        }
+        if (!swTime.isChecked()) {
+            item.hour = -1;
+            item.minute = 0;
+        } else {
+            item.hour = hour;
+            item.minute = minute;
+        }
         item.content = etContent.getText().toString();
         item.priority = spnPriority.getSelectedItemPosition();
         Intent data = new Intent();

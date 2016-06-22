@@ -30,6 +30,13 @@
 
     </LinearLayout>
 
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/completed"
+        android:id="@+id/cbCompleted"
+        android:textColor="@color/app_dark_grey" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -47,15 +54,21 @@
             android:text="@string/due_date" />
 
         <Button
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="pick date"
+            android:layout_weight="1"
             android:onClick="showDatePickerDialog"
             android:textColor="@color/app_dark_grey"
             android:textSize="@dimen/edit_text_size"
             android:id="@+id/btnDueDate"
-            android:layout_toEndOf="@+id/tvDueDate"
             android:background="@color/btn_background_grey" />
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:id="@+id/swDate" />
 
     </LinearLayout>
 
@@ -76,15 +89,21 @@
             android:text="@string/due_time" />
 
         <Button
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="pick date"
+            android:text="pick time"
             android:textColor="@color/app_dark_grey"
             android:onClick="showTimePickerDialog"
             android:id="@+id/btnDueTime"
+            android:layout_weight="1"
             android:textSize="@dimen/edit_text_size"
-            android:layout_toEndOf="@+id/tvDueTime"
             android:background="@color/btn_background_grey" />
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:id="@+id/swTime" />
 
     </LinearLayout>
 

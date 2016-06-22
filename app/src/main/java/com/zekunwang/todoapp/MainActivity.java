@@ -2,25 +2,28 @@ package com.zekunwang.todoapp;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-//import android.util.Log;
+import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TimePicker;
 
 import com.activeandroid.query.Update;
 
 //import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
+//import java.io.File;
+//import java.io.IOException;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,6 +41,7 @@ public class MainActivity extends Activity {
     EditText etEditText;
     private final int REQUEST_CODE = 20;
     static final int REQUEST_DELETE = 2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,7 +50,6 @@ public class MainActivity extends Activity {
         populateArrayItems();
         lvItems = (ListView) findViewById(R.id.lvItems);
         lvItems.setAdapter(aToDoAdapter);
-        etEditText = (EditText) findViewById(R.id.etEditText);
         lvItems.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -75,11 +78,35 @@ public class MainActivity extends Activity {
 
     public void populateArrayItems() {
         readItems();
+        sortByCompleted();
         itemIdSet = new HashSet<>();
         for (Item i : todoItems) {
             itemIdSet.add(i.itemId);
         }
         aToDoAdapter = new ItemAdapter(this, todoItems);
+    }
+
+    private long getTimeStamp(Item item) {
+        long res = item.year;
+        res = res * 100 + item.month;
+        res = res * 100 + item.day;
+        res = res * 100 + Math.max(0, item.hour);
+        res = res * 100 + item.minute;
+        return res != 0 ? res : Long.MAX_VALUE;
+    }
+
+    private void sortByCompleted() {
+        Collections.sort(todoItems, new Comparator<Item>() {
+            @Override
+            public int compare(Item lhs, Item rhs) {
+                boolean left = lhs.completed;
+                boolean right = rhs.completed;
+                if (left == right) {
+                    return 0;
+                }
+                return !left ? -1 : 1;
+            }
+        });
     }
 
     private void sortByPriority() {
@@ -92,16 +119,6 @@ public class MainActivity extends Activity {
                 return lhs.priority > rhs.priority ? -1 : 1;
             }
         });
-        aToDoAdapter.notifyDataSetChanged();
-    }
-
-    private long getTimeStamp(Item item) {
-        long res = item.year;
-        res = res * 100 + item.month;
-        res = res * 100 + item.day;
-        res = res * 100 + Math.max(0, item.hour);
-        res = res * 100 + item.minute;
-        return res != 0 ? res : Long.MAX_VALUE;
     }
 
     private void sortByDateAndTime() {
@@ -110,15 +127,12 @@ public class MainActivity extends Activity {
             public int compare(Item lhs, Item rhs) {
                 long left = getTimeStamp(lhs);
                 long right = getTimeStamp(rhs);
-                System.out.println("" + lhs.title + ": " + left);
-                System.out.println("" + rhs.title + ": " + right);
                 if (left == right) {
                     return 0;
                 }
                 return left < right ? -1 : 1;
             }
         });
-        aToDoAdapter.notifyDataSetChanged();
     }
 
     private void readItems() {
@@ -128,8 +142,8 @@ public class MainActivity extends Activity {
     private void updateItem(int pos) {
         Item cur = todoItems.get(pos);
         new Update(Item.class)
-                .set("title=?,content=?,priority=?,year=?,month=?,day=?,hour=?,minute=?",
-                        cur.title, cur.content, cur.priority, cur.year, cur.month, cur.day, cur.hour, cur.minute)
+                .set("title=?,completed=?,content=?,priority=?,year=?,month=?,day=?,hour=?,minute=?",
+                        cur.title,cur.completed,cur.content,cur.priority,cur.year,cur.month,cur.day,cur.hour,cur.minute)
                 .where("item_id = ?", cur.itemId)
                 .execute();
     }
@@ -145,6 +159,7 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
             int pos = data.getIntExtra("position", 0);
+            sortByCompleted();
             aToDoAdapter.notifyDataSetChanged();
             updateItem(pos);
         } else if (resultCode == REQUEST_DELETE && requestCode == REQUEST_CODE) {
@@ -171,12 +186,15 @@ public class MainActivity extends Activity {
         switch (id) {
             case R.id.addItem:
                 createNewItem();
+                //showEditItemDialog();
                 return true;
             case R.id.sortByPriority:
                 sortByPriority();
+                aToDoAdapter.notifyDataSetChanged();
                 return true;
             case R.id.sortByDateAndTime:
                 sortByDateAndTime();
+                aToDoAdapter.notifyDataSetChanged();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -185,39 +203,15 @@ public class MainActivity extends Activity {
 
     private void createNewItem() {
         Item newItem = getEmptyItem();
-        aToDoAdapter.add(newItem);
+        todoItems.add(newItem);
         newItem.save(); // save newItem to SQLite.
         itemIdSet.add(newItem.itemId);
         switchToEdit(todoItems.size() - 1);
     }
 
-    private void switchToEdit(int pos) {
-        Intent i = new Intent(MainActivity.this, EditItemActivity.class);
-        i.putExtra("position", pos);
-        startActivityForResult(i, REQUEST_CODE);
-    }
-
     private Item getEmptyItem() {
-        Item newItem = new Item();
-        newItem.itemId = getNewItemId();
-        newItem.title = "";
-        newItem.content = "";
-        newItem.year = 0;
-        newItem.month = 0;
-        newItem.day = 0;
-        newItem.hour = -1;
-        newItem.minute = 0;
-        newItem.priority = 1;
+        Item newItem = new Item(getNewItemId());
         return newItem;
-    }
-
-    public void onAddItem(View view) {
-        Item newItem = getEmptyItem();
-        newItem.title = etEditText.getText().toString();
-        aToDoAdapter.add(newItem);
-        etEditText.setText("");
-        newItem.save(); // save newItem to SQLite
-        itemIdSet.add(newItem.itemId);
     }
 
     private int getNewItemId() {
@@ -228,4 +222,11 @@ public class MainActivity extends Activity {
         }
         return newItemId;
     }
+
+    private void switchToEdit(int pos) {
+        Intent i = new Intent(MainActivity.this, EditItemActivity.class);
+        i.putExtra("position", pos);
+        startActivityForResult(i, REQUEST_CODE);
+    }
+
 }
